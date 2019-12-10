@@ -6,12 +6,15 @@ import com.fwdekker.randomness.array.ArraySettings.Companion.default
 import com.fwdekker.randomness.ui.JIntSpinner
 import com.fwdekker.randomness.ui.PreviewPanel
 import com.fwdekker.randomness.ui.getValue
+import com.fwdekker.randomness.ui.not
 import com.fwdekker.randomness.ui.setValue
+import com.intellij.ui.components.JBRadioButton
+import com.intellij.ui.layout.CellBuilder
+import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.selected
 import javax.swing.ButtonGroup
 import javax.swing.JCheckBox
 import javax.swing.JPanel
-import javax.swing.JRadioButton
-import javax.swing.event.ChangeEvent
 
 
 /**
@@ -27,46 +30,68 @@ class ArraySettingsComponent(settings: ArraySettings = default) : SettingsCompon
     }
 
 
-    private lateinit var contentPane: JPanel
-    private lateinit var previewPanelHolder: PreviewPanel<DummyInsertArrayAction>
-    private lateinit var previewPanel: JPanel
+    private var contentPane: JPanel
     private lateinit var countSpinner: JIntSpinner
     private lateinit var bracketsGroup: ButtonGroup
     private lateinit var separatorGroup: ButtonGroup
-    private lateinit var newlineSeparatorButton: JRadioButton
     private lateinit var spaceAfterSeparatorCheckBox: JCheckBox
 
     override val rootPane get() = contentPane
 
 
     init {
+        lateinit var previewPanel: PreviewPanel<DummyInsertArrayAction>
+
+        contentPane = panel {
+            lateinit var newlineSeparatorButton: CellBuilder<JBRadioButton>
+
+            row("Count:") { JIntSpinner(value = 1, minValue = 1)(grow).also { countSpinner = it.component } }
+            row("Brackets:") {
+                withButtonGroup(ButtonGroup().also { bracketsGroup = it }) {
+                    cell(isFullWidth = true) {
+                        radioButton("[]")
+                        radioButton("{}")
+                        radioButton("()")
+                        radioButton("None").also { it.component.actionCommand = "" }
+                    }
+                }
+            }
+            row("Separator:") {
+                cell {
+                    withButtonGroup(ButtonGroup().also { separatorGroup = it }) {
+                        radioButton(",")
+                        radioButton(";")
+                        radioButton("\\n")
+                            .also { it.component.actionCommand = "\n" }
+                            .also { newlineSeparatorButton = it }
+                    }
+                }
+            }
+            row("") {
+                checkBox("Space after separator")()
+                    .enableIf(newlineSeparatorButton.selected.not())
+                    .also { spaceAfterSeparatorCheckBox = it.component }
+            }
+            titledRow("Preview") {
+                previewPanel = PreviewPanel {
+                    DummyInsertArrayAction(ArraySettings().also { saveSettings(it) }, previewPlaceholder)
+                }
+
+                row {
+                    cell(isFullWidth = true) {
+                        previewPanel.previewLabel(grow)
+                        previewPanel.refreshButton()
+                    }
+                }
+            }
+        }
+
         loadSettings()
 
-        newlineSeparatorButton.addChangeListener {
-            spaceAfterSeparatorCheckBox.isEnabled = !newlineSeparatorButton.isSelected
-        }
-        newlineSeparatorButton.changeListeners.forEach { it.stateChanged(ChangeEvent(newlineSeparatorButton)) }
-
-        previewPanelHolder.updatePreviewOnUpdateOf(
-            countSpinner, bracketsGroup, separatorGroup, spaceAfterSeparatorCheckBox)
-        previewPanelHolder.updatePreview()
+        previewPanel.updatePreviewOnUpdateOf(countSpinner, bracketsGroup, separatorGroup, spaceAfterSeparatorCheckBox)
+        previewPanel.updatePreview()
     }
 
-
-    /**
-     * Initialises custom UI components.
-     *
-     * This method is called by the scene builder at the start of the constructor.
-     */
-    @Suppress("UnusedPrivateMember") // Used by scene builder
-    private fun createUIComponents() {
-        previewPanelHolder = PreviewPanel {
-            DummyInsertArrayAction(ArraySettings().also { saveSettings(it) }, previewPlaceholder)
-        }
-        previewPanel = previewPanelHolder.rootPane
-
-        countSpinner = JIntSpinner(value = 1, minValue = 1)
-    }
 
     override fun loadSettings(settings: ArraySettings) {
         countSpinner.value = settings.count

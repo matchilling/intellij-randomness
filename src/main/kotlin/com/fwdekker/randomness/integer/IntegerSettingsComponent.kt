@@ -55,7 +55,7 @@ class IntegerSettingsComponent(settings: IntegerSettings = default) : SettingsCo
     @Suppress("UnusedPrivateMember") // Used by scene builder
     private fun createUIComponents() {
         previewPanelHolder = PreviewPanel { IntegerInsertAction(IntegerSettings().also { saveSettings(it) }) }
-        previewPanel = previewPanelHolder.rootPane
+        previewPanel = JPanel()// previewPanelHolder.rootPane
 
         minValue = JLongSpinner()
         maxValue = JLongSpinner()

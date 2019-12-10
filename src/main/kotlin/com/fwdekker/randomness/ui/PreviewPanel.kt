@@ -2,13 +2,10 @@ package com.fwdekker.randomness.ui
 
 import com.fwdekker.randomness.DataGenerationException
 import com.fwdekker.randomness.DataInsertAction
-import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JSpinner
 import kotlin.random.Random
@@ -27,31 +24,20 @@ import kotlin.random.Random
  */
 @Suppress("LateinitUsage") // Initialized by scene builder
 class PreviewPanel<T : DataInsertAction>(private val getGenerator: () -> T) {
-    /**
-     * The root panel containing the preview elements.
-     */
-    lateinit var rootPane: JPanel
-    private lateinit var refreshButton: JButton
-    private lateinit var previewLabel: JLabel
+    val previewLabel: JLabel
+    val refreshButton: JButton
 
     private var seed = Random.nextInt()
 
 
     init {
-        refreshButton.addMouseListener(object : MouseListener {
-            override fun mouseReleased(e: MouseEvent?) = Unit
-
-            override fun mouseEntered(e: MouseEvent?) = Unit
-
-            override fun mouseClicked(e: MouseEvent?) {
+        previewLabel = JLabel("(placeholder")
+        refreshButton = JButton("Refresh").also {
+            it.addActionListener {
                 seed = Random.nextInt()
                 updatePreview()
             }
-
-            override fun mouseExited(e: MouseEvent?) = Unit
-
-            override fun mousePressed(e: MouseEvent?) = Unit
-        })
+        }
     }
 
 
