@@ -56,7 +56,7 @@ class DecimalSettingsComponent(settings: DecimalSettings = default) : SettingsCo
     @Suppress("UnusedPrivateMember") // Used by scene builder
     private fun createUIComponents() {
         previewPanelHolder = PreviewPanel { DecimalInsertAction(DecimalSettings().also { saveSettings(it) }) }
-        previewPanel = JPanel()// previewPanelHolder.rootPane
+        previewPanel = JPanel() // previewPanelHolder.rootPane
 
         minValue = JDoubleSpinner()
         maxValue = JDoubleSpinner()

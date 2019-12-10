@@ -7,6 +7,7 @@ import com.fwdekker.randomness.ui.JIntSpinner
 import com.fwdekker.randomness.ui.PreviewPanel
 import com.fwdekker.randomness.ui.getValue
 import com.fwdekker.randomness.ui.not
+import com.fwdekker.randomness.ui.radioButton
 import com.fwdekker.randomness.ui.setValue
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.layout.CellBuilder
@@ -23,7 +24,7 @@ import javax.swing.JPanel
  * @see ArraySettings
  * @see ArraySettingsAction
  */
-@Suppress("LateinitUsage") // Initialized by scene builder
+@Suppress("LateinitUsage") // Initialized in DSL
 class ArraySettingsComponent(settings: ArraySettings = default) : SettingsComponent<ArraySettings>(settings) {
     companion object {
         private const val previewPlaceholder = "17"
@@ -45,24 +46,27 @@ class ArraySettingsComponent(settings: ArraySettings = default) : SettingsCompon
         contentPane = panel {
             lateinit var newlineSeparatorButton: CellBuilder<JBRadioButton>
 
-            row("Count:") { JIntSpinner(value = 1, minValue = 1)(grow).also { countSpinner = it.component } }
+            row("Count:") {
+                JIntSpinner(value = 1, minValue = 1)(grow)
+                    .also { it.component.name = "count" }
+                    .also { countSpinner = it.component }
+            }
             row("Brackets:") {
                 withButtonGroup(ButtonGroup().also { bracketsGroup = it }) {
                     cell(isFullWidth = true) {
-                        radioButton("[]")
-                        radioButton("{}")
-                        radioButton("()")
-                        radioButton("None").also { it.component.actionCommand = "" }
+                        radioButton("[]", name = "bracketsSquare")
+                        radioButton("{}", name = "bracketsCurly")
+                        radioButton("()", name = "bracketsRound")
+                        radioButton("None", name = "bracketsNone", actionCommand = "")
                     }
                 }
             }
             row("Separator:") {
                 cell {
                     withButtonGroup(ButtonGroup().also { separatorGroup = it }) {
-                        radioButton(",")
-                        radioButton(";")
-                        radioButton("\\n")
-                            .also { it.component.actionCommand = "\n" }
+                        radioButton(",", name = "separatorComma")
+                        radioButton(";", name = "separatorSemicolon")
+                        radioButton("\\n", name = "separatorNewline", actionCommand = "\n")
                             .also { newlineSeparatorButton = it }
                     }
                 }
@@ -70,6 +74,7 @@ class ArraySettingsComponent(settings: ArraySettings = default) : SettingsCompon
             row("") {
                 checkBox("Space after separator")()
                     .enableIf(newlineSeparatorButton.selected.not())
+                    .also { it.component.name = "spaceAfterSeparator" }
                     .also { spaceAfterSeparatorCheckBox = it.component }
             }
             titledRow("Preview") {

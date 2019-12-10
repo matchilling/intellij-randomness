@@ -2,6 +2,7 @@ package com.fwdekker.randomness.ui
 
 import com.fwdekker.randomness.DataGenerationException
 import com.fwdekker.randomness.DataInsertAction
+import java.util.ResourceBundle
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JCheckBox
@@ -22,17 +23,24 @@ import kotlin.random.Random
  * @param T the type of [DataInsertAction]
  * @property getGenerator returns a [DataInsertAction] that uses the given source of randomness
  */
-@Suppress("LateinitUsage") // Initialized by scene builder
 class PreviewPanel<T : DataInsertAction>(private val getGenerator: () -> T) {
+    /**
+     * The label containing the preview.
+     */
     val previewLabel: JLabel
+    /**
+     * The button to refresh the preview and the seed with which it is generated.
+     */
     val refreshButton: JButton
 
     private var seed = Random.nextInt()
 
 
     init {
-        previewLabel = JLabel("(placeholder")
-        refreshButton = JButton("Refresh").also {
+        val bundle = ResourceBundle.getBundle("randomness")
+
+        previewLabel = JLabel(bundle.getString("settings.preview.placeholder"))
+        refreshButton = JButton(bundle.getString("settings.preview.refresh")).also {
             it.addActionListener {
                 seed = Random.nextInt()
                 updatePreview()
@@ -47,13 +55,13 @@ class PreviewPanel<T : DataInsertAction>(private val getGenerator: () -> T) {
     @Suppress("SwallowedException") // Alternative is to add coupling to SettingsComponent
     fun updatePreview() {
         try {
-            previewLabel.text = "" +
-                "<html>" +
-                getGenerator().also { it.random = Random(seed) }
-                    .generateString()
-                    .replace("<", "&lt;")
-                    .replace("\n", "<br>") +
-                "</html>"
+            val text = getGenerator()
+                .also { it.random = Random(seed) }
+                .generateString()
+                .replace("<", "&lt;")
+                .replace("\n", "<br>")
+
+            previewLabel.text = "<html>$text</html>"
         } catch (e: DataGenerationException) {
             // Ignore exception; invalid settings are handled by form validation
         } catch (e: IllegalArgumentException) {
@@ -66,7 +74,7 @@ class PreviewPanel<T : DataInsertAction>(private val getGenerator: () -> T) {
      *
      * @param components the components to add listeners to
      */
-    @Suppress("SpreadOperator") // Acceptable because this method is called rarely
+    @Suppress("SpreadOperator") // Acceptable because this method is rarely called
     fun updatePreviewOnUpdateOf(vararg components: Any) {
         components.forEach { component ->
             when (component) {
